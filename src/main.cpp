@@ -10,6 +10,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+
+// vertex shader source code
+const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
+const char *fragmentShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\n\0";
+
 int main(){
     glfwInit();
 
@@ -34,6 +50,7 @@ int main(){
 
     // window -> context
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -41,7 +58,99 @@ int main(){
         return -1;
     }    
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // build and compile shader program: 
+    // vertex shader and fragment shader -> link -> shader program
+
+    // create vertex shader object
+    unsigned int vertexShader;
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    // attach shader source code to shader object
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    // compile shader
+    glCompileShader(vertexShader);
+
+    int success;
+    // error message
+    char infoLog[512];
+
+    // check for compile-time errors    
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShader, sizeof(infoLog), NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    // create fragment shader object
+    unsigned int fragmentShader;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    // attach shader source code to shader object
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    // compile shader
+    glCompileShader(fragmentShader);
+
+    // check for compile-time errors
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShader, sizeof(infoLog), NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    // create shader program object, 
+    // which is a final linked version of multiple shaders combined
+    unsigned int shaderProgram;
+    shaderProgram = glCreateProgram();
+
+    // attach and link reviously compiled shaders to the program object
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    // check for linking errors
+    glGetShaderiv(shaderProgram, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shaderProgram, sizeof(infoLog), NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    
+
+    // delete shader objects after using
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    // set up triangle vertices data
+    // OpenGL only processes 3D normalized device coordinates, 
+    // which means they are in between -1.0 and 1.0 in all 3 axes
+
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f,  0.5f, 0.0f
+    };
+
+    // set up buffer for data
+
+    // generate vertex buffer object (send large batches of data all at once)
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    // bind VAO -> bind VBO -> configure vertex attributes
+    glBindVertexArray(VAO);
+
+    // bind the buffer to the GL_ARRAY_BUFFER target
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // copy user-defined data into the currently bound buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // tell OpenGL how it should interpret the vertex data (per vertex attribute) 
+    // 1. which vertex attribute we want to configure
+    // 2. size of the vertex attribute
+    // 3. data type of the attribute
+    // 4. whether we want the data to be normalized
+    // 5. stride: space between consecutive vertex attributes
+    // 6. offset of where the position data begins in the buffer
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);  
     
     // render loop
     while(!glfwWindowShouldClose(window)){
@@ -51,6 +160,12 @@ int main(){
         // rendering
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // use the shader program
+        glUseProgram(shaderProgram);
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
         
         // swap buffers ( from back to front screen)
         glfwSwapBuffers(window);
@@ -58,8 +173,11 @@ int main(){
         glfwPollEvents();
     }
     
-    glfwTerminate();
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(shaderProgram);
 
+    glfwTerminate();
     return 0;
 
 }
