@@ -121,18 +121,25 @@ int main(){
     // OpenGL only processes 3D normalized device coordinates, 
     // which means they are in between -1.0 and 1.0 in all 3 axes
 
+    // draw a rectangle by 2 triangles by with 4 vertices instead of 6 
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f
+         0.5f,  0.5f, 0.0f,  // top right
+         0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  // bottom left
+        -0.5f,  0.5f, 0.0f   // top left 
+    };
+    unsigned int indices[] = {  // note that we start from 0!
+        0, 1, 3,  // first Triangle
+        1, 2, 3   // second Triangle
     };
 
     // set up buffer for data
 
     // generate vertex buffer object (send large batches of data all at once)
-    unsigned int VAO, VBO;
+    unsigned int VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
     // bind VAO -> bind VBO -> configure vertex attributes
     glBindVertexArray(VAO);
@@ -141,6 +148,10 @@ int main(){
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // copy user-defined data into the currently bound buffer
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
 
     // tell OpenGL how it should interpret the vertex data (per vertex attribute) 
     // 1. which vertex attribute we want to configure
@@ -152,6 +163,9 @@ int main(){
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);  
     
+    // wireframe mode
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     // render loop
     while(!glfwWindowShouldClose(window)){
         // input
@@ -164,7 +178,8 @@ int main(){
         // use the shader program
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         
         // swap buffers ( from back to front screen)
@@ -175,6 +190,7 @@ int main(){
     
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
     glDeleteProgram(shaderProgram);
 
     glfwTerminate();
