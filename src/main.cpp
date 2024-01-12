@@ -10,21 +10,35 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+// set up triangle vertices data
+// OpenGL only processes 3D normalized device coordinates, 
+// which means they are in between -1.0 and 1.0 in all 3 axes
+
+float vertices[] = {
+    // positions            // colors
+    0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // bottom left
+    0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f  // top 
+};
+
 
 // vertex shader source code (C-like language: GLSL)
-const char *vertexShaderSource = "#version 330 core\n"
+const char *vertexShaderSource = "#version 410 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 1) in vec3 aColor;\n"
+    "out vec3 ourColor;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos, 1.0);\n"
+    "   ourColor = aColor;\n"
     "}\0";
 
-const char *fragmentShaderSource = "#version 330 core\n"
+const char *fragmentShaderSource = "#version 410 core\n"
     "out vec4 FragColor;\n"
-    "uniform vec4 ourColor;\n"
+    "in vec3 ourColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = ourColor;\n"
+    "   FragColor = vec4(ourColor, 1.0);\n"
     "}\n\0";
 
 int main(){
@@ -63,8 +77,7 @@ int main(){
     // vertex shader and fragment shader -> link -> shader program
 
     // create vertex shader object
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     // attach shader source code to shader object
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     // compile shader
@@ -82,8 +95,7 @@ int main(){
     }
 
     // create fragment shader object
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    unsigned int fragmentShader  = glCreateShader(GL_FRAGMENT_SHADER);
     // attach shader source code to shader object
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     // compile shader
@@ -98,8 +110,7 @@ int main(){
 
     // create shader program object, 
     // which is a final linked version of multiple shaders combined
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
+    unsigned int shaderProgram = glCreateProgram();
 
     // attach and link reviously compiled shaders to the program object
     glAttachShader(shaderProgram, vertexShader);
@@ -117,16 +128,6 @@ int main(){
     // delete shader objects after using
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-
-    // set up triangle vertices data
-    // OpenGL only processes 3D normalized device coordinates, 
-    // which means they are in between -1.0 and 1.0 in all 3 axes
-
-    float vertices[] = {
-         0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-         0.0f,  0.5f, 0.0f   // top 
-    };
 
     // set up buffer for data
 
@@ -151,11 +152,18 @@ int main(){
     // 4. whether we want the data to be normalized
     // 5. stride: space between consecutive vertex attributes
     // 6. offset of where the position data begins in the buffer
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);  
+    // Color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
     
     // wireframe mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // use the shader program, because we only have a single shader program, so we can inactive it out of the render loop
+    glUseProgram(shaderProgram);
 
     // render loop
     while(!glfwWindowShouldClose(window)){
@@ -166,17 +174,8 @@ int main(){
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // use the shader program
-        glUseProgram(shaderProgram);
-
-        // update shader uniform
-        double timeValue = glfwGetTime();
-        float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-        int vectexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-        // 4 float: r, g, b, a
-        glUniform4f(vectexColorLocation, 0.0f, greenValue, 0.00f, 1.0f);
-        
-        // draw triangle
+        // render triangle
+        glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // swap buffers ( from back to front screen)
