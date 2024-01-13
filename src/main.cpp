@@ -16,11 +16,18 @@ const unsigned int SCR_HEIGHT = 600;
 // OpenGL only processes 3D normalized device coordinates, 
 // which means they are in between -1.0 and 1.0 in all 3 axes
 
-float vertices[] = {
-    // positions            // colors
-    0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // bottom left
-    0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f  // top 
+float vertices1[] = {
+    // first triangle position, color 
+    -0.9f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f, // left 
+    -0.0f, 0.5f, 0.0f,     0.0f, 1.0f, 0.0f, // right
+    0.45f, 0.5f, 0.0f,     0.0f, 0.0f, 1.0f, // top 
+}; 
+
+float vertices2[] = {
+     // second triangle
+    0.0f, -0.5f, 0.0f,      0.0f, 1.0f, 0.0f,// left
+    0.9f, -0.5f, 0.0f,      1.0f, 0.0f, 0.0f,// right
+    -0.45f, 0.5f, 0.0f,      0.0f, 0.0f, 1.0f// top 
 };
 
 int main(){
@@ -56,40 +63,31 @@ int main(){
     }    
 
     // build and compile shader program: 
-    Shader ourShader("src/vertexShader", "src/fragmentShader");   
+    Shader ourShader("src/vertexShader", "src/fragmentShader"); 
 
     // set up buffer for data
 
-    // generate vertex buffer object (send large batches of data all at once)
-    unsigned int VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    unsigned int VAOs[2], VBOs[2];
+    glGenVertexArrays(2, VAOs);
+    glGenBuffers(2, VBOs);
 
-    // bind VAO -> bind VBO -> configure vertex attributes
-    glBindVertexArray(VAO);
+    glBindVertexArray(VAOs[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
 
-    // bind the buffer to the GL_ARRAY_BUFFER target
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // copy user-defined data into the currently bound buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-
-    // tell OpenGL how it should interpret the vertex data (per vertex attribute) 
-    // 1. which vertex attribute we want to configure
-    // 2. size of the vertex attribute
-    // 3. data type of the attribute
-    // 4. whether we want the data to be normalized
-    // 5. stride: space between consecutive vertex attributes
-    // 6. offset of where the position data begins in the buffer
-    // Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);  
-    // Color
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    
-    // wireframe mode
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glBindVertexArray(VAOs[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // render loop
     while(!glfwWindowShouldClose(window)){
@@ -103,7 +101,10 @@ int main(){
         ourShader.use();
 
         // render triangle
-        glBindVertexArray(VAO);
+        glBindVertexArray(VAOs[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        glBindVertexArray(VAOs[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // swap buffers ( from back to front screen)
@@ -112,8 +113,8 @@ int main(){
         glfwPollEvents();
     }
     
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(2, VAOs);
+    glDeleteBuffers(2, VBOs);
 
     glfwTerminate();
     return 0;
