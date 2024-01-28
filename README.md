@@ -1,7 +1,7 @@
 # Learn-OpenGL
 
-![drop](asset/drop.gif)
+![drop](https://github.com/ZhuohaoHe/Learning-OpenGL-Notes/tree/main/assets/drop.gif)
 
-![changeTexture](asset/changeTexture.gif)
+![changeTexture](https://github.com/ZhuohaoHe/Learning-OpenGL-Notes/tree/main/assets/changeTexture.gif)
 
-![move](asset/move.gif)
+![move](https://github.com/ZhuohaoHe/Learning-OpenGL-Notes/tree/main/assets/move.gif)
