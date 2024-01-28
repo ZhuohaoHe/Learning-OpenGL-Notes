@@ -3,7 +3,7 @@
 #include "Texture.hpp"
 #include "GLDebug.hpp"
 
-#include "vendor/stb_image.h"
+#include "stb_image/stb_image.h"
 
 
 Texture::Texture(const std::string& path)
