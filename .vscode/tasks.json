@@ -1,0 +1,36 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: clang++ build active file",
+			"command": "/opt/homebrew/opt/llvm/bin/clang++",
+			"args": [
+				"-std=c++17",
+				"-fcolor-diagnostics",
+				"-fansi-escape-codes",
+				"-Wall",
+				"-g",
+				"-I${workspaceFolder}/include",
+				"-L${workspaceFolder}/lib",
+				"${workspaceFolder}/src/*.cpp",
+				"${workspaceFolder}/src/glad.c",
+				"${workspaceFolder}/lib/libglfw.3.3.dylib",
+				"-o",
+				"${workspaceFolder}/bin/${fileBasenameNoExtension}.out",
+				"OpenGL"
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "compiler: /opt/homebrew/opt/llvm/bin/clang++"
+		}
+	]
+}
