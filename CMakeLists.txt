@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/include/vendor)
 
 # Add library directories
 link_directories(${CMAKE_SOURCE_DIR}/lib)
@@ -17,8 +18,11 @@ link_directories(${CMAKE_SOURCE_DIR}/lib)
 # Find all source files in the 'src' directory
 file(GLOB SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
-# Add the executable based on the source files
-add_executable(${PROJECT_NAME} ${SOURCES} "${CMAKE_SOURCE_DIR}/src/glad.c")
+# Find all ImGui source files
+file(GLOB IMGUI_SOURCES "${CMAKE_SOURCE_DIR}/include/vendor/imgui/*.cpp")
+
+# Add the ImGui source files to your project's executable
+add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} "${CMAKE_SOURCE_DIR}/src/glad.c")
 
 # Link against the libraries
 target_link_libraries(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/lib/libglfw.3.3.dylib" "-framework OpenGL")

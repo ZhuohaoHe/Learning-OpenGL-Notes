@@ -95,37 +95,6 @@ unsigned int indices[] = {
     30, 31, 32, 33, 34, 35
 };
 
-// GLfloat vertices[] = {
-//     // Positions          // Texture Coords
-//     // Front face
-//     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // Vertex 0
-//      0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // Vertex 1
-//      0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // Vertex 2
-//     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // Vertex 3
-    
-//     // Back face
-//     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Vertex 4
-//      0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // Vertex 5
-//      0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // Vertex 6
-//     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // Vertex 7
-// };
-
-// unsigned int indices[] = {
-//     // Front face
-//     0, 1, 2, 2, 3, 0,
-//     // Right face
-//     1, 5, 6, 6, 2, 1,
-//     // Back face
-//     7, 6, 5, 5, 4, 7,
-//     // Left face
-//     4, 0, 3, 3, 7, 4,
-//     // Bottom face
-//     4, 5, 1, 1, 0, 4,
-//     // Top face
-//     3, 2, 6, 6, 7, 3
-// };
-
-
 glm::vec3 cubePositions[] = {
     glm::vec3( 0.0f,  0.0f,  0.0f), 
     glm::vec3( 2.0f,  5.0f, -15.0f), 
@@ -182,7 +151,7 @@ int main(){
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -257,14 +226,18 @@ int main(){
     float bottom_y = -3.0f;
     float top_y = 3.0f;
 
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGui_ImplOpenGL3_Init("#version 410");
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui::StyleColorsDark();
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui_ImplOpenGL3_Init("#version 410");
+
+    // Setup Style
+    ImGui::StyleColorsDark();
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+
+    bool show_demo_window = false;
 
 
 /*          ****    ****    ****        */
@@ -280,10 +253,6 @@ int main(){
 
         // rendering
         renderer.Clear();
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
 
         // --- 2D ---
         glm::mat4 trans = glm::mat4(1.0f);
@@ -337,6 +306,18 @@ int main(){
         basicShader.UnUse();
         /*  -----   -----   -----   -----   */
         
+        // poll IO events
+        glfwPollEvents();
+
+        // Start the ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        if (show_demo_window) {
+            ImGui::ShowDemoWindow(&show_demo_window);
+        }
+
         {
             static float f = 0.0f;
             static int counter = 0;
@@ -344,18 +325,20 @@ int main(){
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-
+        
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            ImGui::ColorEdit3("clear color", (float*)&objectColor); // Edit 3 floats representing a color
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
+            if (ImGui::Button("Button")) {
+                counter++;   // Buttons return true when clicked (most widgets return true when edited/activated)
+            }                           
+                
             ImGui::SameLine();
             ImGui::Text("counter = %d", counter);
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            
             ImGui::End();
         }
 
@@ -365,8 +348,7 @@ int main(){
 
         // swap buffers ( from back to front screen)
         glfwSwapBuffers(window);
-        // poll IO events
-        glfwPollEvents();
+
     }
 /*  -----   -----   -----   -----   */
     
