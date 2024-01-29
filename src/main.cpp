@@ -206,7 +206,7 @@ int main(){
 
 /*  -----   Texture  -----   */
     
-    Texture texture1("res/textures/container.jpg");
+    Texture texture1("res/textures/container2.png");
     Texture texture2("res/textures/awesomeface.png");
 
     // tell OpenGL for each sampler to which texture unit it belongs to (only has to be done once)
@@ -218,9 +218,6 @@ int main(){
     basicShader.UnUse(); 
 
 /*  -----   -----   -----   -----   */
-
-    glm::vec3 objectColor(0.80f, 0.52f, 0.25f);
-    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 
     float drop_speed = 0.01f;
     float bottom_y = -3.0f;
@@ -238,6 +235,20 @@ int main(){
     ImGui_ImplGlfw_InitForOpenGL(window, true);
 
     bool show_demo_window = false;
+
+/*  -----   define uniform   -----   */
+glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+// light intensity (color)
+glm::vec3 light_diffuse; 
+glm::vec3 light_ambient;
+glm::vec3 light_specular;
+// for this material: what color the surface reflects under different light
+glm::vec3 material_ambient(1.0f, 0.5f, 0.31f); // usually set to the same value as the real object's color
+glm::vec3 material_diffuse(1.0f, 0.5f, 0.31f); // usually set to the same value as ambient
+glm::vec3 material_specular(0.5f, 0.5f, 0.5f);
+
+
+/*  -----   -------   -----   */
 
 
 /*          ****    ****    ****        */
@@ -284,10 +295,28 @@ int main(){
         basicShader.setMat4("model", model);
         basicShader.setMat4("trans", trans); 
 
-        basicShader.setVec3("objectColor", objectColor);
-        basicShader.setVec3("lightColor", lightColor);
-        basicShader.setVec3("lightPos", lightPos);
+        basicShader.setVec3("light.position", lightPos);
         basicShader.setVec3("viewPos", camera.Position);
+
+        // light properties
+        lightColor.x = static_cast<float>(sin(glfwGetTime() * 2.0));
+        lightColor.y = static_cast<float>(sin(glfwGetTime() * 0.7));
+        lightColor.z = static_cast<float>(sin(glfwGetTime() * 1.3));
+        light_diffuse = lightColor   * glm::vec3(0.5f); // decrease the influence
+        light_ambient = light_diffuse * glm::vec3(0.2f); // low influence
+        light_specular = glm::vec3(1.0f, 1.0f, 1.0f);
+        basicShader.setVec3("light.ambient", light_ambient);
+        basicShader.setVec3("light.diffuse", light_diffuse);
+        basicShader.setVec3("light.specular", light_specular);
+
+        // material properties
+
+        basicShader.setVec3("material.ambient", material_ambient);
+        basicShader.setVec3("material.diffuse", material_diffuse);
+        basicShader.setVec3("material.specular", material_specular); // specular lighting doesn't have full effect on this object's material
+        basicShader.setFloat("material.shininess", 32.0f);
+
+
 
         for(unsigned int i = 0; i < 10; i++){
             glm::mat4 model = glm::mat4(1.0f);
@@ -327,7 +356,7 @@ int main(){
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&objectColor); // Edit 3 floats representing a color
+            ImGui::ColorEdit3("clear color", (float*)&material_ambient); // Edit 3 floats representing a color
 
             if (ImGui::Button("Button")) {
                 counter++;   // Buttons return true when clicked (most widgets return true when edited/activated)
