@@ -120,6 +120,7 @@ float lastX = 400.0f, lastY = 300.0f;
 Camera camera;
 
 // lighting
+glm::vec3 light_position = glm::vec3(1.2f, 1.0f, 2.0f);
 glm::vec3 light_direction = glm::vec3(-0.2f, -1.0f, -0.3f);
 
 
@@ -273,16 +274,16 @@ int main(){
         glm::mat4 model = glm::mat4(1.0f);
 
         /*  -----   draw light cube -----   */
-        // lightShader.Use();
-        // lightShader.setMat4("projection", projection);
-        // lightShader.setMat4("view", view);
-        // model = glm::translate(model, light_direction);
-        // model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        // lightShader.setMat4("model", model);
+        lightShader.Use();
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", view);
+        model = glm::translate(model, light_direction);
+        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+        lightShader.setMat4("model", model);
         
-        // renderer.Draw(lightVa, cubeIb);
+        renderer.Draw(lightVa, cubeIb);
 
-        // lightShader.UnUse();
+        lightShader.UnUse();
         /*  -----   -----   -----   -----   */
 
         /*  -----   draw cubes -----   */
@@ -303,6 +304,10 @@ int main(){
         basicShader.setVec3("light.ambient", light_ambient);
         basicShader.setVec3("light.diffuse", light_diffuse);
         basicShader.setVec3("light.specular", light_specular);
+
+        basicShader.setFloat("light.constant",  1.0f);
+        basicShader.setFloat("light.linear",    0.09f);
+        basicShader.setFloat("light.quadratic", 0.032f);	
 
         // material properties
         basicShader.setFloat("material.shininess", 32.0f);
