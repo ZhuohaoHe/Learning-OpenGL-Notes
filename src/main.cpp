@@ -207,13 +207,16 @@ int main(){
     
     Texture texture1("res/textures/container2.png");
     Texture texture2("res/textures/container2_specular.png");
+    Texture texture3("res/textures/matrix.jpg");
 
     // tell OpenGL for each sampler to which texture unit it belongs to (only has to be done once)
     texture1.Bind(0);
     texture2.Bind(1);
+    texture3.Bind(2);
     basicShader.Use();
     basicShader.setInt("material.diffuse", 0);
     basicShader.setInt("material.specular", 1);
+    basicShader.setInt("material.emission", 2);
     basicShader.UnUse(); 
 
 /*  -----   -----   -----   -----   */
@@ -241,6 +244,7 @@ int main(){
     glm::vec3 light_diffuse; 
     glm::vec3 light_ambient;
     glm::vec3 light_specular;
+    float time = 0.0f;
 
 
 /*  -----   -------   -----   */
@@ -301,10 +305,11 @@ int main(){
         basicShader.setVec3("light.specular", light_specular);
 
         // material properties
-
         basicShader.setFloat("material.shininess", 32.0f);
 
-
+        // time
+        time = (float)glfwGetTime();
+        basicShader.setFloat("time", time);
 
         for(unsigned int i = 0; i < 10; i++){
             glm::mat4 model = glm::mat4(1.0f);
