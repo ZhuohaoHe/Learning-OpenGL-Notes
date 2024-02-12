@@ -108,6 +108,13 @@ glm::vec3 cubePositions[] = {
     glm::vec3(-1.3f,  1.0f, -1.5f)  
 };
 
+glm::vec3 pointLightPositions[] = {
+    glm::vec3( 0.7f,  0.2f,  2.0f),
+    glm::vec3( 2.3f, -3.3f, -4.0f),
+    glm::vec3(-4.0f,  2.0f, -12.0f),
+    glm::vec3( 0.0f,  0.0f, -3.0f)
+};
+
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
@@ -118,11 +125,6 @@ float lastX = 400.0f, lastY = 300.0f;
 
 // camera
 Camera camera;
-
-// lighting
-glm::vec3 light_position = glm::vec3(1.2f, 1.0f, 2.0f);
-glm::vec3 light_direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-
 
 int main(){
     glfwInit();
@@ -240,11 +242,27 @@ int main(){
     bool show_demo_window = false;
 
 /*  -----   define uniform   -----   */
-    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-    // light intensity (color)
-    glm::vec3 light_diffuse; 
-    glm::vec3 light_ambient;
-    glm::vec3 light_specular;
+    glm::vec3 direct_light_color = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 point_light_color = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 spot_light_color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    float light_constant = 1.0f;
+    float light_linear = 0.09f;
+    float light_quadratic = 0.032f;
+
+    glm::vec3 direct_light_direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    glm::vec3 direct_light_ambient = direct_light_color * 0.05f;
+    glm::vec3 direct_light_diffuse = direct_light_color * 0.4f;
+    glm::vec3 direct_light_specular = direct_light_color * 0.5f;
+    // point light
+    glm::vec3 point_light_ambient = point_light_color * 0.05f;
+    glm::vec3 point_light_diffuse = point_light_color * 0.6f;
+    glm::vec3 point_light_specular = point_light_color * 1.0f;
+    // spot light
+    glm::vec3 spot_light_ambient = spot_light_color * 0.0f;
+    glm::vec3 spot_light_diffuse = spot_light_color * 0.8f;
+    glm::vec3 spot_light_specular = spot_light_color * 1.0f;
+
     float time = 0.0f;
 
 
@@ -273,18 +291,21 @@ int main(){
         glm::mat4 view = camera.getViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 
-        /*  -----   draw light cube -----   */
-        // lightShader.Use();
-        // lightShader.setMat4("projection", projection);
-        // lightShader.setMat4("view", view);
-        // model = glm::translate(model, light_position);
-        // model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        // lightShader.setMat4("model", model);
-        
-        // renderer.Draw(lightVa, cubeIb);
+        // light paarmeters
+        // directional light
+        direct_light_direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+        direct_light_ambient = direct_light_color * 0.05f;
+        direct_light_diffuse = direct_light_color * 0.4f;
+        direct_light_specular = direct_light_color * 0.5f;
+        // point light
+        point_light_ambient = point_light_color * 0.05f;
+        point_light_diffuse = point_light_color * 0.6f;
+        point_light_specular = point_light_color * 1.0f;
+        // spot light
+        spot_light_ambient = spot_light_color * 0.0f;
+        spot_light_diffuse = spot_light_color * 0.8f;
+        spot_light_specular = spot_light_color * 1.0f;
 
-        // lightShader.UnUse();
-        /*  -----   -----   -----   -----   */
 
         /*  -----   draw cubes -----   */
         basicShader.Use();
@@ -296,22 +317,34 @@ int main(){
         basicShader.setVec3("viewPos", camera.Position);
 
         // light properties
-        basicShader.setVec3("light.position", camera.Position);
-        basicShader.setVec3("light.direction", camera.Front);
+        // direct
+        basicShader.setVec3("directLight.direction", direct_light_direction);
+        basicShader.setVec3("directLight.ambient", direct_light_ambient);
+        basicShader.setVec3("directLight.diffuse", direct_light_diffuse);
+        basicShader.setVec3("directLight.specular", direct_light_specular);
+        // point
+        for (int i = 0; i < 4; i ++ ) {
+            std::string index = std::to_string(i);
+            basicShader.setVec3("pointLights[" + index + "].position", pointLightPositions[i]);
+            basicShader.setVec3("pointLights[" + index + "].ambient", point_light_ambient);
+            basicShader.setVec3("pointLights[" + index + "].diffuse", point_light_diffuse);
+            basicShader.setVec3("pointLights[" + index + "].specular", point_light_specular);
+            basicShader.setFloat("pointLights[" + index + "].constant", light_constant);
+            basicShader.setFloat("pointLights[" + index + "].linear", light_linear);
+            basicShader.setFloat("pointLights[" + index + "].quadratic", light_quadratic);
+        }
+        // spot
+        basicShader.setVec3("spotLight.position", camera.Position);
+        basicShader.setVec3("spotLight.direction", camera.Front);
+        basicShader.setVec3("spotLight.ambient", spot_light_ambient);
+        basicShader.setVec3("spotLight.diffuse", spot_light_diffuse);
+        basicShader.setVec3("spotLight.specular", spot_light_specular);
+        basicShader.setFloat("spotLight.constant", light_constant);
+        basicShader.setFloat("spotLight.linear", light_linear);
+        basicShader.setFloat("spotLight.quadratic", light_quadratic);
+        basicShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        basicShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
 
-        basicShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-        basicShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
-
-        light_diffuse = lightColor   * glm::vec3(0.5f); // decrease the influence
-        light_ambient = light_diffuse * glm::vec3(0.2f); // low influence
-        light_specular = glm::vec3(1.0f, 1.0f, 1.0f);
-        basicShader.setVec3("light.ambient", light_ambient);
-        basicShader.setVec3("light.diffuse", light_diffuse);
-        basicShader.setVec3("light.specular", light_specular);
-
-        basicShader.setFloat("light.constant",  1.0f);
-        basicShader.setFloat("light.linear",    0.09f);
-        basicShader.setFloat("light.quadratic", 0.032f);	
 
         // material properties
         basicShader.setFloat("material.shininess", 32.0f);
@@ -322,10 +355,10 @@ int main(){
 
         for(unsigned int i = 0; i < 10; i++){
             glm::mat4 model = glm::mat4(1.0f);
-            cubePositions[i].y -= drop_speed;
-            if (cubePositions[i].y < bottom_y) {
-                cubePositions[i].y = top_y;
-            }
+            // cubePositions[i].y -= drop_speed;
+            // if (cubePositions[i].y < bottom_y) {
+            //     cubePositions[i].y = top_y;
+            // }
             model = glm::translate(model, cubePositions[i]);
             float angle = 20.0f * i; 
             model = glm::rotate(model, glm::radians(angle) + (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
@@ -335,6 +368,20 @@ int main(){
         }
 
         basicShader.UnUse();
+        /*  -----   -----   -----   -----   */
+
+        /*  -----   draw light cube -----   */
+        lightShader.Use();
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", view);
+        for (int i = 0; i < 4; i ++ ) {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, pointLightPositions[i]);
+            model = glm::scale(model, glm::vec3(0.2f));
+            lightShader.setMat4("model", model);
+            renderer.Draw(lightVa, cubeIb);
+        }
+        lightShader.UnUse();
         /*  -----   -----   -----   -----   */
         
         // poll IO events
@@ -358,7 +405,10 @@ int main(){
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&lightColor); // Edit 3 floats representing a color
+            ImGui::ColorEdit3("direct light color", (float*)&direct_light_color); 
+            ImGui::ColorEdit3("point light color", (float*)&point_light_color); 
+            ImGui::ColorEdit3("spot light color", (float*)&spot_light_color); 
+
 
             if (ImGui::Button("Button")) {
                 counter++;   // Buttons return true when clicked (most widgets return true when edited/activated)
