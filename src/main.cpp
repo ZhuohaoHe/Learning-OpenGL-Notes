@@ -274,16 +274,16 @@ int main(){
         glm::mat4 model = glm::mat4(1.0f);
 
         /*  -----   draw light cube -----   */
-        lightShader.Use();
-        lightShader.setMat4("projection", projection);
-        lightShader.setMat4("view", view);
-        model = glm::translate(model, light_direction);
-        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        lightShader.setMat4("model", model);
+        // lightShader.Use();
+        // lightShader.setMat4("projection", projection);
+        // lightShader.setMat4("view", view);
+        // model = glm::translate(model, light_position);
+        // model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+        // lightShader.setMat4("model", model);
         
-        renderer.Draw(lightVa, cubeIb);
+        // renderer.Draw(lightVa, cubeIb);
 
-        lightShader.UnUse();
+        // lightShader.UnUse();
         /*  -----   -----   -----   -----   */
 
         /*  -----   draw cubes -----   */
@@ -293,11 +293,15 @@ int main(){
         basicShader.setMat4("view", view);
         basicShader.setMat4("model", model);
         basicShader.setMat4("trans", trans); 
-
-        basicShader.setVec3("light.direction", light_direction);
         basicShader.setVec3("viewPos", camera.Position);
 
         // light properties
+        basicShader.setVec3("light.position", camera.Position);
+        basicShader.setVec3("light.direction", camera.Front);
+
+        basicShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+        basicShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+
         light_diffuse = lightColor   * glm::vec3(0.5f); // decrease the influence
         light_ambient = light_diffuse * glm::vec3(0.2f); // low influence
         light_specular = glm::vec3(1.0f, 1.0f, 1.0f);

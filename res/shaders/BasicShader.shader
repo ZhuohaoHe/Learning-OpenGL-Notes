@@ -36,6 +36,9 @@ struct Material {
 
 struct Light {
     vec3 position;
+    vec3 direction;
+    float cutOff;
+    float outerCutOff;
 
     vec3 ambient;
     vec3 diffuse;
@@ -58,10 +61,10 @@ uniform float time;
 
 
 void main() {
+    vec3 lightDir = normalize(light.position - FragPos);
+
     // Ambient
     vec3 ambient = light.ambient * texture(material.diffuse, TexCoord).rgb;
-    
-    vec3 lightDir = normalize(light.position - FragPos);
 
     // Diffuse
     vec3 norm = normalize(Normal);
@@ -76,15 +79,22 @@ void main() {
     
     // Emission
     vec3 emission = vec3(0.0);
-    if (texture(material.specular, TexCoord).rgb == vec3(0.0f))   /*rough check for blackbox inside spec texture */
-    {
-        /*apply emission texture */
+    // rough check for blackbox inside spec texture 
+    if (texture(material.specular, TexCoord).rgb == vec3(0.0f)) {
+        // apply emission texture
         emission = texture(material.emission, TexCoord).rgb;
         
-        // /*some extra fun stuff with "time uniform" */
+        // some extra fun stuff with "time uniform" 
         emission = texture(material.emission, TexCoord + vec2(0.0,time)).rgb;   /*moving */
         emission = emission * (sin(time) * 0.5 + 0.5) * 2.0;                     /*fading */
     }
+
+    // spolight
+    float theta = dot(lightDir, normalize(-light.direction)); 
+    float epsilon = (light.cutOff - light.outerCutOff);
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+    diffuse  *= intensity;
+    specular *= intensity;
 
     // attenuation
     float distance    = length(light.position - FragPos);
