@@ -112,8 +112,6 @@ glm::vec3 cubePositions[] = {
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
-float mixValue = 0.2f;
-
 bool firstMouse = true;
 
 float lastX = 400.0f, lastY = 300.0f;
@@ -123,6 +121,7 @@ Camera camera;
 
 // lighting
 glm::vec3 lightPos(3.6f, 3.0f, 6.0f);
+
 
 int main(){
     glfwInit();
@@ -207,14 +206,14 @@ int main(){
 /*  -----   Texture  -----   */
     
     Texture texture1("res/textures/container2.png");
-    Texture texture2("res/textures/awesomeface.png");
+    Texture texture2("res/textures/container2_specular.png");
 
     // tell OpenGL for each sampler to which texture unit it belongs to (only has to be done once)
     texture1.Bind(0);
     texture2.Bind(1);
     basicShader.Use();
-    basicShader.setInt("texture1", 0);
-    basicShader.setInt("texture2", 1);
+    basicShader.setInt("material.diffuse", 0);
+    basicShader.setInt("material.specular", 1);
     basicShader.UnUse(); 
 
 /*  -----   -----   -----   -----   */
@@ -237,15 +236,11 @@ int main(){
     bool show_demo_window = false;
 
 /*  -----   define uniform   -----   */
-glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-// light intensity (color)
-glm::vec3 light_diffuse; 
-glm::vec3 light_ambient;
-glm::vec3 light_specular;
-// for this material: what color the surface reflects under different light
-glm::vec3 material_ambient(1.0f, 0.5f, 0.31f); // usually set to the same value as the real object's color
-glm::vec3 material_diffuse(1.0f, 0.5f, 0.31f); // usually set to the same value as ambient
-glm::vec3 material_specular(0.5f, 0.5f, 0.5f);
+    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+    // light intensity (color)
+    glm::vec3 light_diffuse; 
+    glm::vec3 light_ambient;
+    glm::vec3 light_specular;
 
 
 /*  -----   -------   -----   */
@@ -288,7 +283,6 @@ glm::vec3 material_specular(0.5f, 0.5f, 0.5f);
 
         /*  -----   draw cubes -----   */
         basicShader.Use();
-        basicShader.setFloat("mixValue", mixValue);
         
         basicShader.setMat4("projection", projection);
         basicShader.setMat4("view", view);
@@ -299,9 +293,6 @@ glm::vec3 material_specular(0.5f, 0.5f, 0.5f);
         basicShader.setVec3("viewPos", camera.Position);
 
         // light properties
-        lightColor.x = static_cast<float>(sin(glfwGetTime() * 2.0));
-        lightColor.y = static_cast<float>(sin(glfwGetTime() * 0.7));
-        lightColor.z = static_cast<float>(sin(glfwGetTime() * 1.3));
         light_diffuse = lightColor   * glm::vec3(0.5f); // decrease the influence
         light_ambient = light_diffuse * glm::vec3(0.2f); // low influence
         light_specular = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -311,9 +302,6 @@ glm::vec3 material_specular(0.5f, 0.5f, 0.5f);
 
         // material properties
 
-        basicShader.setVec3("material.ambient", material_ambient);
-        basicShader.setVec3("material.diffuse", material_diffuse);
-        basicShader.setVec3("material.specular", material_specular); // specular lighting doesn't have full effect on this object's material
         basicShader.setFloat("material.shininess", 32.0f);
 
 
@@ -356,7 +344,7 @@ glm::vec3 material_specular(0.5f, 0.5f, 0.5f);
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&material_ambient); // Edit 3 floats representing a color
+            ImGui::ColorEdit3("clear color", (float*)&lightColor); // Edit 3 floats representing a color
 
             if (ImGui::Button("Button")) {
                 counter++;   // Buttons return true when clicked (most widgets return true when edited/activated)
@@ -396,18 +384,6 @@ void processInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        mixValue += 0.01f;
-        if(mixValue >= 1.0f) {
-            mixValue = 1.0f;
-        }
-    }
-    if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        mixValue -= 0.01f;
-        if(mixValue <= 0.0f) {
-            mixValue = 0.0f;
-        }
-    }
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         camera.processKeyboard(FORWARD, deltaTime);
     }
