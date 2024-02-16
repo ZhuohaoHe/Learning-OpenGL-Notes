@@ -184,30 +184,35 @@ int main(){
 
     std::vector<unsigned int> indices(std::begin(rawIndices), std::end(rawIndices));
 
-    // VertexArray cubeVa;
+    VertexArray cubeVa;
 
     // VertexBuffer cubeVb(rawVertices, sizeof(rawVertices));
+    // TODO: why the following line doesn't work? but rawVertices works
+    VertexBuffer cubeVb(vertices.data(), vertices.size() * sizeof(Vertex));
 
-    // VertexBufferLayout cubeLayout;
+    VertexBufferLayout cubeLayout;
 
-    // cubeLayout.Push<float>(3);
-    // cubeLayout.Push<float>(2);
-    // cubeLayout.Push<float>(3);
+    cubeLayout.Push<float>(3);
+    cubeLayout.Push<float>(2);
+    cubeLayout.Push<float>(3);
 
-    // cubeVa.AddBuffer(cubeVb, cubeLayout);
+    cubeVa.AddBuffer(cubeVb, cubeLayout);
 
-    // IndexBuffer cubeIb(rawIndices, sizeof(rawIndices) / sizeof(unsigned int));
+    IndexBuffer cubeIb(rawIndices, sizeof(rawIndices) / sizeof(unsigned int));
+    // IndexBuffer cubeIb(indices.data(), indices.size());
 
-    // // light
-    // VertexArray lightVa;
+    // light
+    VertexArray lightVa;
 
-    // VertexBufferLayout lightLayout;
+    VertexBufferLayout lightLayout;
 
-    // lightLayout.Push<float>(3);
+    lightLayout.Push<float>(3);
 
-    // lightVa.AddBuffer(cubeVb, lightLayout); // share same cubeVb, because light is a cube too
+    lightVa.AddBuffer(cubeVb, lightLayout); // share same cubeVb, because light is a cube too
 
-    // cubeIb.UnBind();
+    cubeIb.UnBind();
+
+    Mesh cubeMesh(vertices, indices);
 
 /*  -----    ------    -----    */
 
@@ -227,9 +232,6 @@ int main(){
     basicShader.setInt("material.specular", 1);
     basicShader.setInt("material.emission", 2);
     basicShader.UnUse(); 
-
-
-    Mesh cubeMesh(vertices, indices);
 
 
 /*  -----   -----   -----   -----   */
@@ -374,8 +376,8 @@ int main(){
             model = glm::rotate(model, glm::radians(angle) + (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
             basicShader.setMat4("model", model);
 
-            // renderer.Draw(cubeVa, cubeIb);
-            cubeMesh.Draw();
+            renderer.Draw(cubeVa, cubeIb);
+            // cubeMesh.Draw();
         }
 
         basicShader.UnUse();
