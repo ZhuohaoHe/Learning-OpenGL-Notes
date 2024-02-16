@@ -11,6 +11,7 @@
 #include "GLDebug.hpp"
 #include "Renderer.hpp"
 #include "Texture.hpp"
+#include "Mesh.hpp"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -26,6 +27,7 @@
 void processInput(GLFWwindow *window); 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+std::vector<Vertex> set_date();
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -35,7 +37,7 @@ const unsigned int SCR_HEIGHT = 600;
 // OpenGL only processes 3D normalized device coordinates, 
 // which means they are in between -1.0 and 1.0 in all 3 axes
 
-float vertices[] = {
+float rawVertices[] = {
         // 0-2: posistion,  3-4: texture, 5-7: normal vector
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, -1.0f,
@@ -80,7 +82,7 @@ float vertices[] = {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f
     };
 
-unsigned int indices[] = {
+unsigned int rawIndices[] = {
     // Front face
     0, 1, 2, 3, 4, 5,
     // Right face
@@ -178,30 +180,34 @@ int main(){
 /*  -----   data & buffer & array ----- */
 /*          ****    ****    ****        */
 
-    VertexArray cubeVa;
+    std::vector<Vertex> vertices = set_date();
 
-    VertexBuffer cubeVb(vertices, sizeof(vertices));
+    std::vector<unsigned int> indices(std::begin(rawIndices), std::end(rawIndices));
 
-    VertexBufferLayout cubeLayout;
+    // VertexArray cubeVa;
 
-    cubeLayout.Push<float>(3);
-    cubeLayout.Push<float>(2);
-    cubeLayout.Push<float>(3);
+    // VertexBuffer cubeVb(rawVertices, sizeof(rawVertices));
 
-    cubeVa.AddBuffer(cubeVb, cubeLayout);
+    // VertexBufferLayout cubeLayout;
 
-    IndexBuffer cubeIb(indices, sizeof(indices) / sizeof(unsigned int));
+    // cubeLayout.Push<float>(3);
+    // cubeLayout.Push<float>(2);
+    // cubeLayout.Push<float>(3);
 
-    // light
-    VertexArray lightVa;
+    // cubeVa.AddBuffer(cubeVb, cubeLayout);
 
-    VertexBufferLayout lightLayout;
+    // IndexBuffer cubeIb(rawIndices, sizeof(rawIndices) / sizeof(unsigned int));
 
-    lightLayout.Push<float>(3);
+    // // light
+    // VertexArray lightVa;
 
-    lightVa.AddBuffer(cubeVb, lightLayout); // share same cubeVb, because light is a cube too
+    // VertexBufferLayout lightLayout;
 
-    cubeIb.UnBind();
+    // lightLayout.Push<float>(3);
+
+    // lightVa.AddBuffer(cubeVb, lightLayout); // share same cubeVb, because light is a cube too
+
+    // cubeIb.UnBind();
 
 /*  -----    ------    -----    */
 
@@ -221,6 +227,10 @@ int main(){
     basicShader.setInt("material.specular", 1);
     basicShader.setInt("material.emission", 2);
     basicShader.UnUse(); 
+
+
+    Mesh cubeMesh(vertices, indices);
+
 
 /*  -----   -----   -----   -----   */
 
@@ -364,7 +374,8 @@ int main(){
             model = glm::rotate(model, glm::radians(angle) + (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
             basicShader.setMat4("model", model);
 
-            renderer.Draw(cubeVa, cubeIb);
+            // renderer.Draw(cubeVa, cubeIb);
+            cubeMesh.Draw();
         }
 
         basicShader.UnUse();
@@ -379,7 +390,9 @@ int main(){
             model = glm::translate(model, pointLightPositions[i]);
             model = glm::scale(model, glm::vec3(0.2f));
             lightShader.setMat4("model", model);
-            renderer.Draw(lightVa, cubeIb);
+            
+            // renderer.Draw(lightVa, cubeIb);
+            cubeMesh.Draw();
         }
         lightShader.UnUse();
         /*  -----   -----   -----   -----   */
@@ -486,3 +499,17 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
 
     camera.processMouse(xoffset, yoffset);
 }
+
+std::vector<Vertex> set_date() {
+    std::vector<Vertex> vertices;
+    for (int i = 0; i < std::size(rawVertices); i += 8) {
+        Vertex vertex;
+        vertex.Position = glm::vec3(rawVertices[i], rawVertices[i + 1], rawVertices[i + 2]);
+        vertex.TexCoords = glm::vec2(rawVertices[i + 3], rawVertices[i + 4]);
+        vertex.Normal = glm::vec3(rawVertices[i + 5], rawVertices[i + 6], rawVertices[i + 7]);
+        vertices.push_back(vertex);
+    }
+    return vertices;
+}
+
+
