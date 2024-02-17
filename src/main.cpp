@@ -178,18 +178,12 @@ int main(){
 
 
 /*          ****    ****    ****        */
-/*  -----   data & buffer & array ----- */
+/*  ----- vertices indices textures --- */
 /*          ****    ****    ****        */
 
     std::vector<Vertex> vertices = set_date();
 
     std::vector<unsigned int> indices(std::begin(rawIndices), std::end(rawIndices));
-
-
-/*  -----    ------    -----    */
-
-
-/*  -----   Texture  -----   */
     
     Texture texture1("res/textures/container2.png", TextureType::DIFFUSE);
     Texture texture2("res/textures/container2_specular.png", TextureType::SPECULAR);
@@ -201,11 +195,6 @@ int main(){
     textures.push_back(&texture2);
     textures.push_back(&texture3);
 
-
-    // std::vector<Texture> textures;
-    // textures.push_back(texture1);
-    // textures.push_back(texture2);
-    // textures.push_back(texture3);
 
     Mesh cubeMesh(vertices, indices, textures);
 
@@ -313,7 +302,7 @@ int main(){
         // point
         for (int i = 0; i < 1; i ++ ) {
             std::string index = std::to_string(i);
-            basicShader.setVec3("pointLights[" + index + "].position", pointLightPositions[i]);
+            basicShader.setVec3("pointLights[" + index + "].position", pointLightPositions[0]);
             basicShader.setVec3("pointLights[" + index + "].ambient", point_light_ambient);
             basicShader.setVec3("pointLights[" + index + "].diffuse", point_light_diffuse);
             basicShader.setVec3("pointLights[" + index + "].specular", point_light_specular);
