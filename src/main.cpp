@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 
 void processInput(GLFWwindow *window); 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -184,61 +185,36 @@ int main(){
 
     std::vector<unsigned int> indices(std::begin(rawIndices), std::end(rawIndices));
 
-    VertexArray cubeVa;
-
-    // VertexBuffer cubeVb(rawVertices, sizeof(rawVertices));
-    // TODO: why the following line doesn't work? but rawVertices works
-    VertexBuffer cubeVb(vertices.data(), vertices.size() * sizeof(Vertex));
-
-    VertexBufferLayout cubeLayout;
-
-    cubeLayout.Push<float>(3);
-    cubeLayout.Push<float>(2);
-    cubeLayout.Push<float>(3);
-
-    cubeVa.AddBuffer(cubeVb, cubeLayout);
-
-    IndexBuffer cubeIb(rawIndices, sizeof(rawIndices) / sizeof(unsigned int));
-    // IndexBuffer cubeIb(indices.data(), indices.size());
-
-    // light
-    VertexArray lightVa;
-
-    VertexBufferLayout lightLayout;
-
-    lightLayout.Push<float>(3);
-
-    lightVa.AddBuffer(cubeVb, lightLayout); // share same cubeVb, because light is a cube too
-
-    cubeIb.UnBind();
-
-    Mesh cubeMesh(vertices, indices);
 
 /*  -----    ------    -----    */
 
 
 /*  -----   Texture  -----   */
     
-    Texture texture1("res/textures/container2.png");
-    Texture texture2("res/textures/container2_specular.png");
-    Texture texture3("res/textures/matrix.jpg");
+    Texture texture1("res/textures/container2.png", TextureType::DIFFUSE);
+    Texture texture2("res/textures/container2_specular.png", TextureType::SPECULAR);
+    Texture texture3("res/textures/matrix.jpg", TextureType::EMISSION);
 
-    // tell OpenGL for each sampler to which texture unit it belongs to (only has to be done once)
-    texture1.Bind(0);
-    texture2.Bind(1);
-    texture3.Bind(2);
-    basicShader.Use();
-    basicShader.setInt("material.diffuse", 0);
-    basicShader.setInt("material.specular", 1);
-    basicShader.setInt("material.emission", 2);
-    basicShader.UnUse(); 
+    std::vector<Texture*> textures;
+
+    textures.push_back(&texture1);
+    textures.push_back(&texture2);
+    textures.push_back(&texture3);
+
+
+    // std::vector<Texture> textures;
+    // textures.push_back(texture1);
+    // textures.push_back(texture2);
+    // textures.push_back(texture3);
+
+    Mesh cubeMesh(vertices, indices, textures);
 
 
 /*  -----   -----   -----   -----   */
 
-    float drop_speed = 0.01f;
-    float bottom_y = -3.0f;
-    float top_y = 3.0f;
+    // float drop_speed = 0.01f;
+    // float bottom_y = -3.0f;
+    // float top_y = 3.0f;
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -335,7 +311,7 @@ int main(){
         basicShader.setVec3("directLight.diffuse", direct_light_diffuse);
         basicShader.setVec3("directLight.specular", direct_light_specular);
         // point
-        for (int i = 0; i < 4; i ++ ) {
+        for (int i = 0; i < 1; i ++ ) {
             std::string index = std::to_string(i);
             basicShader.setVec3("pointLights[" + index + "].position", pointLightPositions[i]);
             basicShader.setVec3("pointLights[" + index + "].ambient", point_light_ambient);
@@ -364,39 +340,34 @@ int main(){
         // time
         time = (float)glfwGetTime();
         basicShader.setFloat("time", time);
-
-        for(unsigned int i = 0; i < 10; i++){
-            glm::mat4 model = glm::mat4(1.0f);
-            // cubePositions[i].y -= drop_speed;
-            // if (cubePositions[i].y < bottom_y) {
-            //     cubePositions[i].y = top_y;
-            // }
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i; 
-            model = glm::rotate(model, glm::radians(angle) + (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
-            basicShader.setMat4("model", model);
-
-            renderer.Draw(cubeVa, cubeIb);
-            // cubeMesh.Draw();
-        }
-
+        float angle = 20.0f; 
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -5.0f));
+        model = glm::rotate(model, glm::radians(angle) + (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
+        basicShader.setMat4("model", model);
         basicShader.UnUse();
+
+        cubeMesh.Render(&basicShader);
+
+        // for(unsigned int i = 0; i < 10; i++){
+        //     glm::mat4 model = glm::mat4(1.0f);
+        //     // cubePositions[i].y -= drop_speed;
+        //     // if (cubePositions[i].y < bottom_y) {
+        //     //     cubePositions[i].y = top_y;
+        //     // }
+        //     model = glm::translate(model, cubePositions[i]);
+        // }
         /*  -----   -----   -----   -----   */
 
         /*  -----   draw light cube -----   */
         lightShader.Use();
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
-        for (int i = 0; i < 4; i ++ ) {
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, pointLightPositions[i]);
-            model = glm::scale(model, glm::vec3(0.2f));
-            lightShader.setMat4("model", model);
-            
-            // renderer.Draw(lightVa, cubeIb);
-            cubeMesh.Draw();
-        }
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, pointLightPositions[0]);
+        model = glm::scale(model, glm::vec3(0.2f));
+        lightShader.setMat4("model", model);
         lightShader.UnUse();
+        cubeMesh.Render(&lightShader);
         /*  -----   -----   -----   -----   */
         
         // poll IO events

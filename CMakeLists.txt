@@ -26,6 +26,8 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} "${CMAKE_SOURCE_DIR}/
 
 # Link against the libraries
 target_link_libraries(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/lib/libglfw.3.3.dylib" "-framework OpenGL")
+# Link against the assimp library
+target_link_libraries(${PROJECT_NAME} assimp)
 
 # Set the output directory for executables
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")

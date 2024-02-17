@@ -2,12 +2,13 @@
 
 #include "Texture.hpp"
 #include "GLDebug.hpp"
+#include <iostream>
 
 #include "stb_image/stb_image.h"
 
 
-Texture::Texture(const std::string& path)
-    : m_RendererID(0), m_FilePath(path), m_LocalBuffer(nullptr), m_Width(0), m_Height(0), m_BPP(0) {
+Texture::Texture(const std::string& path, const TextureType type)
+    : m_RendererID(0), m_FilePath(path), m_Type(type), m_Width(0), m_Height(0), m_BPP(0) {
     // flip texture(top left 0) upside down to fit OpenGL's bottom left 0
     stbi_set_flip_vertically_on_load(true);
 
@@ -24,13 +25,22 @@ Texture::Texture(const std::string& path)
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
+    GLenum format;
+    if (m_BPP == 1) {
+        format = GL_RED;
+    } else if (m_BPP == 3) {
+        format = GL_RGB;
+    } else if (m_BPP == 4) {
+        format = GL_RGBA;
+    }
+
     GLCall(glTexImage2D(GL_TEXTURE_2D,
                     0, 
-                    GL_RGB, 
+                    format, 
                     m_Width, 
                     m_Height, 
                     0, 
-                    GL_RGBA, 
+                    format, 
                     GL_UNSIGNED_BYTE, 
                     m_LocalBuffer));
     GLCall(glGenerateMipmap(GL_TEXTURE_2D));
