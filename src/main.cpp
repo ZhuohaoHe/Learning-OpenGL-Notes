@@ -187,13 +187,13 @@ int main(){
     
     Texture texture1("res/textures/container2.png", TextureType::DIFFUSE);
     Texture texture2("res/textures/container2_specular.png", TextureType::SPECULAR);
-    Texture texture3("res/textures/matrix.jpg", TextureType::EMISSION);
+    // Texture texture3("res/textures/matrix.jpg", TextureType::EMISSION);
 
     std::vector<Texture*> textures;
 
     textures.push_back(&texture1);
     textures.push_back(&texture2);
-    textures.push_back(&texture3);
+    // textures.push_back(&texture3);
 
 
     Mesh cubeMesh(vertices, indices, textures);

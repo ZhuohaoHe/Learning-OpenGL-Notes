@@ -34,7 +34,7 @@ in vec3 FragPos;
 struct Material {
     sampler2D diffuse; // diffuse = ambient
     sampler2D specular;
-    sampler2D emission;
+    // sampler2D emission;
     float shininess;
 };
 
@@ -176,22 +176,22 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
-    // emission
-    vec3 emission = vec3(0.0);
-    // rough check for blackbox inside spec texture 
-    if (texture(material.specular, TexCoords).rgb == vec3(0.0f)) {
-        // apply emission texture
-        emission = texture(material.emission, TexCoords).rgb;
+    // // emission
+    // vec3 emission = vec3(0.0);
+    // // rough check for blackbox inside spec texture 
+    // if (texture(material.specular, TexCoords).rgb == vec3(0.0f)) {
+    //     // apply emission texture
+    //     emission = texture(material.emission, TexCoords).rgb;
         
-        // some extra fun stuff with "time uniform" 
-        emission = texture(material.emission, TexCoords + vec2(0.0,time)).rgb;   
-        emission = emission * (sin(time) * 0.5 + 0.5) * 2.0;                    
-    }
+    //     // some extra fun stuff with "time uniform" 
+    //     emission = texture(material.emission, TexCoords + vec2(0.0,time)).rgb;   
+    //     emission = emission * (sin(time) * 0.5 + 0.5) * 2.0;                    
+    // }
     
     ambient *= attenuation * intensity;
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
-    emission *= attenuation * intensity;
+    // emission *= attenuation * intensity;
 
-    return (ambient + diffuse + specular + emission);
+    return (ambient + diffuse + specular);
 }
