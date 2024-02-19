@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture*> textures) 
-    : textures(textures){
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture>> textures) 
+    : textures(std::move(textures)){
 
     this->m_VAO = new VertexArray();
 
@@ -27,7 +27,6 @@ Mesh::~Mesh() {
 }
 
 void Mesh::Render(Shader* shader) {
-    // textures
     shader->Use();
     for (unsigned int i = 0; i < this->textures.size(); i++) {
         this->textures[i]->Bind(i);

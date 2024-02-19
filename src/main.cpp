@@ -12,6 +12,7 @@
 #include "Renderer.hpp"
 #include "Texture.hpp"
 #include "Mesh.hpp"
+#include "Model.hpp"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -34,89 +35,6 @@ std::vector<Vertex> set_date();
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// set up triangle vertices data
-// OpenGL only processes 3D normalized device coordinates, 
-// which means they are in between -1.0 and 1.0 in all 3 axes
-
-float rawVertices[] = {
-        // 0-2: posistion,  3-4: texture, 5-7: normal vector
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, -1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, -1.0f,  0.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f
-    };
-
-unsigned int rawIndices[] = {
-    // Front face
-    0, 1, 2, 3, 4, 5,
-    // Right face
-    6, 7, 8, 9, 10, 11,
-    // Back face
-    12, 13, 14, 15, 16, 17,
-    // Left face
-    18, 19, 20, 21, 22, 23,
-    // Bottom face
-    24, 25, 26, 27, 28, 29,
-    // Top face
-    30, 31, 32, 33, 34, 35
-};
-
-glm::vec3 cubePositions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f), 
-    glm::vec3( 2.0f,  5.0f, -15.0f), 
-    glm::vec3(-1.5f, -2.2f, -2.5f),  
-    glm::vec3(-3.8f, -2.0f, -12.3f),  
-    glm::vec3( 2.4f, -0.4f, -3.5f),  
-    glm::vec3(-1.7f,  3.0f, -7.5f),  
-    glm::vec3( 1.3f, -2.0f, -2.5f),  
-    glm::vec3( 1.5f,  2.0f, -2.5f), 
-    glm::vec3( 1.5f,  0.2f, -1.5f), 
-    glm::vec3(-1.3f,  1.0f, -1.5f)  
-};
-
-glm::vec3 pointLightPositions[] = {
-    glm::vec3( 0.7f,  0.2f,  2.0f),
-    glm::vec3( 2.3f, -3.3f, -4.0f),
-    glm::vec3(-4.0f,  2.0f, -12.0f),
-    glm::vec3( 0.0f,  0.0f, -3.0f)
-};
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -165,10 +83,8 @@ int main(){
     }    
     glEnable(GL_DEPTH_TEST);
 
-
 /*  -----   Shader  -----   */
     Shader basicShader("res/shaders/BasicShader.shader");
-    Shader lightShader("res/shaders/LightShader.shader");
 /*  -----   -----  -----   */
 
 /*  -----   Blending  -----   */
@@ -177,33 +93,7 @@ int main(){
 /*  -----   -----  -----   */
 
 
-/*          ****    ****    ****        */
-/*  ----- vertices indices textures --- */
-/*          ****    ****    ****        */
-
-    std::vector<Vertex> vertices = set_date();
-
-    std::vector<unsigned int> indices(std::begin(rawIndices), std::end(rawIndices));
-    
-    Texture texture1("res/textures/container2.png", TextureType::DIFFUSE);
-    Texture texture2("res/textures/container2_specular.png", TextureType::SPECULAR);
-    // Texture texture3("res/textures/matrix.jpg", TextureType::EMISSION);
-
-    std::vector<Texture*> textures;
-
-    textures.push_back(&texture1);
-    textures.push_back(&texture2);
-    // textures.push_back(&texture3);
-
-
-    Mesh cubeMesh(vertices, indices, textures);
-
-
 /*  -----   -----   -----   -----   */
-
-    // float drop_speed = 0.01f;
-    // float bottom_y = -3.0f;
-    // float top_y = 3.0f;
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -218,29 +108,21 @@ int main(){
 
     bool show_demo_window = false;
 
-/*  -----   define uniform   -----   */
-    glm::vec3 direct_light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-    glm::vec3 point_light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-    glm::vec3 spot_light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
-    float light_constant = 1.0f;
-    float light_linear = 0.09f;
-    float light_quadratic = 0.032f;
+/*          ****    ****    ****        */
+/*  ----- vertices indices textures --- */
+/*          ****    ****    ****        */
+
+    // model
+    Model backpackModel("res/models/glasscube/Grass_Block.obj");
+
+/*  -----   define light uniform   -----   */
+    glm::vec3 direct_light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     glm::vec3 direct_light_direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-    glm::vec3 direct_light_ambient = direct_light_color * 0.05f;
-    glm::vec3 direct_light_diffuse = direct_light_color * 0.4f;
-    glm::vec3 direct_light_specular = direct_light_color * 0.5f;
-    // point light
-    glm::vec3 point_light_ambient = point_light_color * 0.05f;
-    glm::vec3 point_light_diffuse = point_light_color * 0.6f;
-    glm::vec3 point_light_specular = point_light_color * 1.0f;
-    // spot light
-    glm::vec3 spot_light_ambient = spot_light_color * 0.0f;
-    glm::vec3 spot_light_diffuse = spot_light_color * 0.8f;
-    glm::vec3 spot_light_specular = spot_light_color * 1.0f;
-
-    float time = 0.0f;
+    glm::vec3 direct_light_ambient = direct_light_color * 1.0f;
+    glm::vec3 direct_light_diffuse = direct_light_color * 1.0f;
+    glm::vec3 direct_light_specular = direct_light_color * 1.0f;
 
 
 /*  -----   -------   -----   */
@@ -274,14 +156,6 @@ int main(){
         direct_light_ambient = direct_light_color * 0.05f;
         direct_light_diffuse = direct_light_color * 0.4f;
         direct_light_specular = direct_light_color * 0.5f;
-        // point light
-        point_light_ambient = point_light_color * 0.05f;
-        point_light_diffuse = point_light_color * 0.6f;
-        point_light_specular = point_light_color * 1.0f;
-        // spot light
-        spot_light_ambient = spot_light_color * 0.0f;
-        spot_light_diffuse = spot_light_color * 0.8f;
-        spot_light_specular = spot_light_color * 1.0f;
 
 
         /*  -----   draw cubes -----   */
@@ -299,65 +173,18 @@ int main(){
         basicShader.setVec3("directLight.ambient", direct_light_ambient);
         basicShader.setVec3("directLight.diffuse", direct_light_diffuse);
         basicShader.setVec3("directLight.specular", direct_light_specular);
-        // point
-        for (int i = 0; i < 1; i ++ ) {
-            std::string index = std::to_string(i);
-            basicShader.setVec3("pointLights[" + index + "].position", pointLightPositions[0]);
-            basicShader.setVec3("pointLights[" + index + "].ambient", point_light_ambient);
-            basicShader.setVec3("pointLights[" + index + "].diffuse", point_light_diffuse);
-            basicShader.setVec3("pointLights[" + index + "].specular", point_light_specular);
-            basicShader.setFloat("pointLights[" + index + "].constant", light_constant);
-            basicShader.setFloat("pointLights[" + index + "].linear", light_linear);
-            basicShader.setFloat("pointLights[" + index + "].quadratic", light_quadratic);
-        }
-        // spot
-        basicShader.setVec3("spotLight.position", camera.Position);
-        basicShader.setVec3("spotLight.direction", camera.Front);
-        basicShader.setVec3("spotLight.ambient", spot_light_ambient);
-        basicShader.setVec3("spotLight.diffuse", spot_light_diffuse);
-        basicShader.setVec3("spotLight.specular", spot_light_specular);
-        basicShader.setFloat("spotLight.constant", light_constant);
-        basicShader.setFloat("spotLight.linear", light_linear);
-        basicShader.setFloat("spotLight.quadratic", light_quadratic);
-        basicShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        basicShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
-
-
+        
         // material properties
         basicShader.setFloat("material.shininess", 32.0f);
 
-        // time
-        time = (float)glfwGetTime();
-        basicShader.setFloat("time", time);
         float angle = 20.0f; 
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, -5.0f));
         model = glm::rotate(model, glm::radians(angle) + (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
         basicShader.setMat4("model", model);
         basicShader.UnUse();
 
-        cubeMesh.Render(&basicShader);
-
-        // for(unsigned int i = 0; i < 10; i++){
-        //     glm::mat4 model = glm::mat4(1.0f);
-        //     // cubePositions[i].y -= drop_speed;
-        //     // if (cubePositions[i].y < bottom_y) {
-        //     //     cubePositions[i].y = top_y;
-        //     // }
-        //     model = glm::translate(model, cubePositions[i]);
-        // }
-        /*  -----   -----   -----   -----   */
-
-        /*  -----   draw light cube -----   */
-        lightShader.Use();
-        lightShader.setMat4("projection", projection);
-        lightShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, pointLightPositions[0]);
-        model = glm::scale(model, glm::vec3(0.2f));
-        lightShader.setMat4("model", model);
-        lightShader.UnUse();
-        cubeMesh.Render(&lightShader);
-        /*  -----   -----   -----   -----   */
+        // cubeMesh.Render(&basicShader);
+        backpackModel.Render(&basicShader);
         
         // poll IO events
         glfwPollEvents();
@@ -379,16 +206,8 @@ int main(){
 
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("direct light color", (float*)&direct_light_color); 
-            ImGui::ColorEdit3("point light color", (float*)&point_light_color); 
-            ImGui::ColorEdit3("spot light color", (float*)&spot_light_color); 
-
-
-            if (ImGui::Button("Button")) {
-                counter++;   // Buttons return true when clicked (most widgets return true when edited/activated)
-            }                           
-                
+        
             ImGui::SameLine();
             ImGui::Text("counter = %d", counter);
 
@@ -460,18 +279,6 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
     lastY = ypos;
 
     camera.processMouse(xoffset, yoffset);
-}
-
-std::vector<Vertex> set_date() {
-    std::vector<Vertex> vertices;
-    for (int i = 0; i < std::size(rawVertices); i += 8) {
-        Vertex vertex;
-        vertex.Position = glm::vec3(rawVertices[i], rawVertices[i + 1], rawVertices[i + 2]);
-        vertex.TexCoords = glm::vec2(rawVertices[i + 3], rawVertices[i + 4]);
-        vertex.Normal = glm::vec3(rawVertices[i + 5], rawVertices[i + 6], rawVertices[i + 7]);
-        vertices.push_back(vertex);
-    }
-    return vertices;
 }
 
 

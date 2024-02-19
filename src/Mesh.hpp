@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include <memory>
 
 #include "IndexBuffer.hpp"
 #include "VertexArray.hpp"
@@ -14,6 +15,8 @@ struct Vertex {
     glm::vec3 Position;
     glm::vec2 TexCoords;
     glm::vec3 Normal;
+    // glm::vec3 Tangent;
+    // glm::vec3 Bitangent;
 };
 
 class Mesh {
@@ -21,10 +24,10 @@ class Mesh {
         VertexArray* m_VAO;
         VertexBuffer* m_VBO;
         IndexBuffer* m_IBO;
-        std::vector<Texture*> textures;
+        std::vector<std::shared_ptr<Texture>> textures;
 
     public:
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture*> textures);
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture>> textures);
         ~Mesh();
 
         void Render(Shader* shader);

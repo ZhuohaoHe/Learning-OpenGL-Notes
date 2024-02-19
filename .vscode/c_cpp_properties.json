@@ -3,9 +3,8 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/include",
-                "${workspaceFolder}/include/vendor"
+                "${workspaceFolder}/shared",
+                "${workspaceFolder}/shared/vendor"
             ],
             "defines": [],
             "macFrameworkPath": [
